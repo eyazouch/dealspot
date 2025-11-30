@@ -1,5 +1,6 @@
 package com.dealspot.backend.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import java.time.LocalDateTime;
 
@@ -15,6 +16,7 @@ public class Favori {
     
     @ManyToOne
     @JoinColumn(name = "user_id", nullable = false)
+    @JsonIgnore  // Ignore user pour éviter boucle dans Offre
     private User user;
     
     @ManyToOne

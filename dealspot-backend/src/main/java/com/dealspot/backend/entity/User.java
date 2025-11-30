@@ -1,5 +1,6 @@
 package com.dealspot.backend.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import java.time.LocalDateTime;
 import java.util.List;
@@ -27,9 +28,11 @@ public class User {
     private LocalDateTime createdAt;
     
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
+    @JsonIgnore  // ← AJOUTER CETTE LIGNE
     private List<Offre> offres;
     
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
+    @JsonIgnore  // ← AJOUTER CETTE LIGNE
     private List<Favori> favoris;
     
     @PrePersist
@@ -41,7 +44,7 @@ public class User {
         USER, VENDEUR, ADMIN
     }
     
-    // Getters et Setters
+    // Getters et Setters (GARDER TOUT COMME AVANT)
     public Long getId() {
         return id;
     }
