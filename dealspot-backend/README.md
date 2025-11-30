@@ -20,7 +20,7 @@ Backend API REST pour la plateforme de bons plans en temps réel.
 
 ### 1. Cloner le repository
 ```bash
-git clone https://github.com/TON_USERNAME/dealspot.git
+git clone https://github.com/eyazouch/dealspot.git
 cd dealspot/dealspot-backend
 ```
 
