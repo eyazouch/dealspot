@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { register } from '../services/api';
+import { usePopup } from '../components/Popup';
 
 function Register() {
   const [formData, setFormData] = useState({
@@ -11,6 +12,7 @@ function Register() {
   });
   const [error, setError] = useState('');
   const navigate = useNavigate();
+  const { showNotification, PopupComponents } = usePopup();
 
   const handleChange = (e) => {
     setFormData({
@@ -25,8 +27,8 @@ function Register() {
 
     try {
       await register(formData);
-      alert('Inscription réussie ! Vous pouvez maintenant vous connecter.');
-      navigate('/login');
+      showNotification('Inscription réussie ! Vous pouvez maintenant vous connecter.', 'success');
+      setTimeout(() => navigate('/login'), 1500);
     } catch (error) {
       console.error('Erreur:', error);
       if (error.response?.data?.message) {
@@ -38,8 +40,14 @@ function Register() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-500 to-pink-600 flex items-center justify-center px-4">
-      <div className="bg-white rounded-2xl shadow-2xl p-8 w-full max-w-md">
+    <div className="min-h-screen bg-gradient-to-b from-gray-50 to-purple-50 flex items-center justify-center px-4 relative">
+      {/* Subtle decorative elements */}
+      <div className="absolute inset-0 overflow-hidden">
+        <div className="absolute top-0 right-1/4 w-72 h-72 bg-purple-100 rounded-full mix-blend-multiply filter blur-3xl opacity-30"></div>
+        <div className="absolute bottom-0 left-1/4 w-72 h-72 bg-pink-100 rounded-full mix-blend-multiply filter blur-3xl opacity-30"></div>
+      </div>
+      <PopupComponents />
+      <div className="relative z-10 bg-white rounded-2xl shadow-lg border border-gray-100 p-8 w-full max-w-md">
         <div className="text-center mb-8">
           <h1 className="text-3xl font-bold text-gray-800">🎯 DealSpot</h1>
           <p className="text-gray-600 mt-2">Créez votre compte</p>
