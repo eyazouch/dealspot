@@ -3,6 +3,7 @@ package com.dealspot.backend.entity;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 
 @Entity
@@ -27,24 +28,34 @@ public class User {
     
     private LocalDateTime createdAt;
     
+    // NOUVEAU : Badges du vendeur
+    @ElementCollection
+    @CollectionTable(name = "user_badges", joinColumns = @JoinColumn(name = "user_id"))
+    @Column(name = "badge")
+    private List<String> badges = new ArrayList<>();
+    
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
-    @JsonIgnore  // ← AJOUTER CETTE LIGNE
+    @JsonIgnore
     private List<Offre> offres;
     
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
-    @JsonIgnore  // ← AJOUTER CETTE LIGNE
+    @JsonIgnore
     private List<Favori> favoris;
     
     @PrePersist
     protected void onCreate() {
         this.createdAt = LocalDateTime.now();
+        // Badge par défaut pour les nouveaux vendeurs
+        if (this.role == Role.VENDEUR && this.badges.isEmpty()) {
+            this.badges.add("NOUVEAU_VENDEUR");
+        }
     }
     
     public enum Role {
         USER, VENDEUR, ADMIN
     }
     
-    // Getters et Setters (GARDER TOUT COMME AVANT)
+    // Getters et Setters
     public Long getId() {
         return id;
     }
@@ -91,6 +102,14 @@ public class User {
 
     public void setCreatedAt(LocalDateTime createdAt) {
         this.createdAt = createdAt;
+    }
+
+    public List<String> getBadges() {
+        return badges;
+    }
+
+    public void setBadges(List<String> badges) {
+        this.badges = badges;
     }
 
     public List<Offre> getOffres() {

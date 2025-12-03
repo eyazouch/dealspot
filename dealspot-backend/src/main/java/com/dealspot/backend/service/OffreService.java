@@ -70,4 +70,23 @@ public class OffreService {
         List<Offre> expiredOffres = offreRepository.findByDateExpirationBefore(LocalDateTime.now());
         offreRepository.deleteAll(expiredOffres);
     }
+ // AJOUTER À LA FIN DE OffreService.java (avant la dernière accolade)
+
+    // Recherche par mot-clé
+    public List<Offre> searchOffres(String keyword) {
+        return offreRepository.searchByKeyword(keyword, LocalDateTime.now());
+    }
+    
+    // Récupérer les coups de cœur
+    public List<Offre> getCoupsDeCoeur() {
+        return offreRepository.findByCoupDeCoeurTrueAndDateExpirationAfter(LocalDateTime.now());
+    }
+    
+    // Incrémenter les vues
+    public void incrementVues(Long offreId) {
+        Offre offre = offreRepository.findById(offreId)
+            .orElseThrow(() -> new RuntimeException("Offre non trouvée"));
+        offre.incrementVues();
+        offreRepository.save(offre);
+    }
 }

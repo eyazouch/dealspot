@@ -38,17 +38,31 @@ public class Offre {
     private User user;
     
     @OneToMany(mappedBy = "offre", cascade = CascadeType.ALL)
-    @JsonIgnore  // ← AJOUTER CETTE LIGNE
+    @JsonIgnore
     private List<Favori> favoris;
     
     private LocalDateTime createdAt;
     
+    // NOUVEAU : Statistiques
+    @Column(nullable = false)
+    private Long vues = 0L;
+    
+    @Column(nullable = false)
+    private Boolean coupDeCoeur = false;
+    
     @PrePersist
     protected void onCreate() {
         this.createdAt = LocalDateTime.now();
+        this.vues = 0L;
+        this.coupDeCoeur = false;
     }
     
-    // Getters et Setters (GARDER TOUT)
+    // Méthode pour incrémenter les vues
+    public void incrementVues() {
+        this.vues++;
+    }
+    
+    // Getters et Setters
     public Long getId() {
         return id;
     }
@@ -151,5 +165,21 @@ public class Offre {
 
     public void setCreatedAt(LocalDateTime createdAt) {
         this.createdAt = createdAt;
+    }
+
+    public Long getVues() {
+        return vues;
+    }
+
+    public void setVues(Long vues) {
+        this.vues = vues;
+    }
+
+    public Boolean getCoupDeCoeur() {
+        return coupDeCoeur;
+    }
+
+    public void setCoupDeCoeur(Boolean coupDeCoeur) {
+        this.coupDeCoeur = coupDeCoeur;
     }
 }

@@ -4,6 +4,7 @@ import com.dealspot.backend.dto.OffreRequest;
 import com.dealspot.backend.entity.Offre;
 import com.dealspot.backend.entity.User;
 import com.dealspot.backend.service.OffreService;
+import com.dealspot.backend.service.StatistiquesService;
 import com.dealspot.backend.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -23,6 +24,36 @@ public class OffreController {
     
     @Autowired
     private UserService userService;
+ // AJOUTER À LA FIN DE OffreController.java (avant la dernière accolade)
+
+    @Autowired
+    private StatistiquesService statistiquesService;
+    
+    // Recherche par mot-clé
+    @GetMapping("/search")
+    public ResponseEntity<List<Offre>> searchOffres(@RequestParam String keyword) {
+        List<Offre> offres = offreService.searchOffres(keyword);
+        return ResponseEntity.ok(offres);
+    }
+    
+    // Offres coup de cœur
+    @GetMapping("/coups-de-coeur")
+    public ResponseEntity<List<Offre>> getCoupsDeCoeur() {
+        List<Offre> offres = offreService.getCoupsDeCoeur();
+        return ResponseEntity.ok(offres);
+    }
+    
+    // Incrémenter les vues (appelé quand on consulte une offre)
+    @PostMapping("/{id}/vue")
+    public ResponseEntity<?> incrementVues(@PathVariable Long id) {
+        try {
+            offreService.incrementVues(id);
+            return ResponseEntity.ok(Map.of("message", "Vue comptabilisée"));
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                .body(Map.of("error", e.getMessage()));
+        }
+    }
     
     // Récupérer toutes les offres actives
     @GetMapping
