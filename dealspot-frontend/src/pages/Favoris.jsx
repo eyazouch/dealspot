@@ -2,16 +2,18 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { getFavoris, removeFavori } from '../services/api';
 import { Heart, MapPin, Calendar, Tag, Trash2 } from 'lucide-react';
+import { usePopup } from '../components/Popup';
 
 function Favoris() {
   const [favoris, setFavoris] = useState([]);
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
   const user = JSON.parse(localStorage.getItem('user') || '{}');
+  const { showNotification, showConfirm, PopupComponents } = usePopup();
 
   useEffect(() => {
     if (!user.id) {
-      alert('Vous devez être connecté pour voir vos favoris');
+      showNotification('Vous devez être connecté pour voir vos favoris', 'warning');
       navigate('/login');
       return;
     }
@@ -25,22 +27,23 @@ function Favoris() {
       setFavoris(response.data);
     } catch (error) {
       console.error('Erreur:', error);
-      alert('Erreur lors du chargement des favoris');
+      showNotification('Erreur lors du chargement des favoris', 'error');
     } finally {
       setLoading(false);
     }
   };
 
   const handleRemoveFavori = async (offreId) => {
-    if (!window.confirm('Retirer cette offre de vos favoris ?')) return;
+    const confirmed = await showConfirm('Retirer cette offre de vos favoris ?');
+    if (!confirmed) return;
 
     try {
       await removeFavori(offreId, user.id);
-      alert('Offre retirée des favoris');
+      showNotification('Offre retirée des favoris', 'success');
       fetchFavoris();
     } catch (error) {
       console.error('Erreur:', error);
-      alert('Erreur lors de la suppression');
+      showNotification('Erreur lors de la suppression', 'error');
     }
   };
 
@@ -54,10 +57,26 @@ function Favoris() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <header className="bg-gradient-to-r from-red-500 to-pink-600 text-white py-8 shadow-lg">
-        <div className="container mx-auto px-4">
-          <h1 className="text-4xl font-bold mb-2">⭐ Mes Favoris</h1>
-          <p className="text-red-100">Vos offres préférées ({favoris.length})</p>
+      <PopupComponents />
+      <header className="relative bg-gradient-to-r from-rose-500 via-pink-500 to-fuchsia-600 text-white py-6 overflow-hidden">
+        {/* Cercles décoratifs */}
+        <div className="absolute top-0 right-0 w-40 h-40 bg-white/10 rounded-full translate-x-1/2 -translate-y-1/2"></div>
+        <div className="absolute bottom-0 left-0 w-48 h-48 bg-white/5 rounded-full -translate-x-1/3 translate-y-1/2"></div>
+        
+        <div className="container mx-auto px-4 relative z-10">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <span className="bg-white/20 p-2 rounded-lg"><Heart className="w-5 h-5 fill-current" /></span>
+              <div>
+                <h1 className="text-2xl md:text-3xl font-bold">Mes Favoris</h1>
+                <p className="text-pink-200 text-sm">Vos offres préférées</p>
+              </div>
+            </div>
+            <div className="bg-white/10 backdrop-blur-sm rounded-xl px-4 py-2 text-center">
+              <div className="text-xl font-bold">{favoris.length}</div>
+              <div className="text-pink-200 text-xs">Favoris</div>
+            </div>
+          </div>
         </div>
       </header>
 

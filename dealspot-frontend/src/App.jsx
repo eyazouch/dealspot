@@ -1,26 +1,42 @@
 import { BrowserRouter as Router, Routes, Route, Link, useNavigate } from 'react-router-dom';
 import { Home as HomeIcon, Heart, PlusCircle, Package, LogIn, LogOut, User } from 'lucide-react';
+import { useState } from 'react';
 import Home from './pages/Home';
 import Login from './pages/Login';
 import Register from './pages/Register';
 import CreateOffre from './pages/CreateOffre';
 import MesOffres from './pages/MesOffres';
 import Favoris from './pages/Favoris';
+import OffreDetails from './pages/OffreDetails';
+import EditOffre from './pages/EditOffre';
+import { ConfirmPopup } from './components/Popup';
 
 function Navigation() {
   const navigate = useNavigate();
   const user = JSON.parse(localStorage.getItem('user') || '{}');
+  const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
 
   const handleLogout = () => {
-    if (window.confirm('Voulez-vous vraiment vous déconnecter ?')) {
-      localStorage.removeItem('user');
-      navigate('/');
-      window.location.reload();
-    }
+    setShowLogoutConfirm(true);
+  };
+
+  const confirmLogout = () => {
+    localStorage.removeItem('user');
+    setShowLogoutConfirm(false);
+    navigate('/');
+    window.location.reload();
   };
 
   return (
-    <nav className="bg-white shadow-md sticky top-0 z-50">
+    <>
+      {showLogoutConfirm && (
+        <ConfirmPopup
+          message="Voulez-vous vraiment vous déconnecter ?"
+          onConfirm={confirmLogout}
+          onCancel={() => setShowLogoutConfirm(false)}
+        />
+      )}
+      <nav className="bg-white shadow-md sticky top-0 z-50">
       <div className="container mx-auto px-4">
         <div className="flex items-center justify-between h-16">
           {/* Logo */}
@@ -102,6 +118,7 @@ function Navigation() {
         </div>
       </div>
     </nav>
+    </>
   );
 }
 
@@ -117,6 +134,8 @@ function App() {
           <Route path="/create-offre" element={<CreateOffre />} />
           <Route path="/mes-offres" element={<MesOffres />} />
           <Route path="/favoris" element={<Favoris />} />
+          <Route path="/offre/:id" element={<OffreDetails />} />
+          <Route path="/edit-offre/:id" element={<EditOffre />} />
         </Routes>
       </div>
     </Router>

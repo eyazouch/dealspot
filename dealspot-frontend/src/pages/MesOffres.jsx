@@ -2,21 +2,23 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { getAllOffres, deleteOffre } from '../services/api';
 import { Plus, Edit, Trash2, MapPin, Calendar, Tag } from 'lucide-react';
+import { usePopup } from '../components/Popup';
 
 function MesOffres() {
   const [mesOffres, setMesOffres] = useState([]);
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
   const user = JSON.parse(localStorage.getItem('user') || '{}');
+  const { showNotification, showConfirm, PopupComponents } = usePopup();
 
   useEffect(() => {
     if (!user.id) {
-      alert('Vous devez être connecté');
+      showNotification('Vous devez être connecté', 'warning');
       navigate('/login');
       return;
     }
     if (user.role !== 'VENDEUR') {
-      alert('Accès réservé aux vendeurs');
+      showNotification('Accès réservé aux vendeurs', 'error');
       navigate('/');
       return;
     }
@@ -32,22 +34,23 @@ function MesOffres() {
       setMesOffres(offresVendeur);
     } catch (error) {
       console.error('Erreur:', error);
-      alert('Erreur lors du chargement des offres');
+      showNotification('Erreur lors du chargement des offres', 'error');
     } finally {
       setLoading(false);
     }
   };
 
   const handleDelete = async (id) => {
-    if (!window.confirm('Êtes-vous sûr de vouloir supprimer cette offre ?')) return;
+    const confirmed = await showConfirm('Êtes-vous sûr de vouloir supprimer cette offre ?');
+    if (!confirmed) return;
 
     try {
       await deleteOffre(id, user.id);
-      alert('Offre supprimée avec succès');
+      showNotification('Offre supprimée avec succès', 'success');
       fetchMesOffres();
     } catch (error) {
       console.error('Erreur:', error);
-      alert('Erreur lors de la suppression');
+      showNotification('Erreur lors de la suppression', 'error');
     }
   };
 
@@ -61,20 +64,34 @@ function MesOffres() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <header className="bg-gradient-to-r from-green-500 to-blue-600 text-white py-8 shadow-lg">
-        <div className="container mx-auto px-4">
-          <div className="flex justify-between items-center">
-            <div>
-              <h1 className="text-4xl font-bold mb-2">📊 Mes Offres</h1>
-              <p className="text-green-100">Gérez vos offres ({mesOffres.length})</p>
+      <PopupComponents />
+      <header className="relative bg-gradient-to-r from-emerald-500 via-teal-500 to-cyan-600 text-white py-6 overflow-hidden">
+        {/* Cercles décoratifs */}
+        <div className="absolute top-0 left-0 w-40 h-40 bg-white/10 rounded-full -translate-x-1/2 -translate-y-1/2"></div>
+        <div className="absolute bottom-0 right-0 w-52 h-52 bg-white/5 rounded-full translate-x-1/3 translate-y-1/2"></div>
+        
+        <div className="container mx-auto px-4 relative z-10">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <span className="bg-white/20 p-2 rounded-lg"><Tag className="w-5 h-5" /></span>
+              <div>
+                <h1 className="text-2xl md:text-3xl font-bold">Mes Offres</h1>
+                <p className="text-emerald-200 text-sm">Gérez vos offres publiées</p>
+              </div>
             </div>
-            <button
-              onClick={() => navigate('/create-offre')}
-              className="bg-white text-green-600 px-6 py-3 rounded-lg font-semibold hover:bg-green-50 flex items-center gap-2"
-            >
-              <Plus className="w-5 h-5" />
-              Nouvelle offre
-            </button>
+            <div className="flex items-center gap-3">
+              <div className="bg-white/10 backdrop-blur-sm rounded-xl px-4 py-2 text-center">
+                <div className="text-xl font-bold">{mesOffres.length}</div>
+                <div className="text-emerald-200 text-xs">Offres</div>
+              </div>
+              <button
+                onClick={() => navigate('/create-offre')}
+                className="bg-white text-emerald-600 px-4 py-2 rounded-lg font-semibold hover:bg-emerald-50 flex items-center gap-2 shadow-md transition-all"
+              >
+                <Plus className="w-4 h-4" />
+                <span className="hidden sm:inline">Nouvelle</span>
+              </button>
+            </div>
           </div>
         </div>
       </header>
@@ -138,6 +155,7 @@ function MesOffres() {
                   {/* Actions */}
                   <div className="flex gap-2">
                     <button
+                      onClick={() => navigate(`/edit-offre/${offre.id}`)}
                       className="flex-1 bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700 flex items-center justify-center gap-2"
                     >
                       <Edit className="w-4 h-4" />
