@@ -6,6 +6,7 @@ import java.time.LocalDateTime;
 @Entity
 @Table(name = "rapport_vendor")
 public class RapportVendor {
+    
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
@@ -15,14 +16,16 @@ public class RapportVendor {
     private User vendor;
     
     private LocalDateTime dateGeneration;
-    private String periode; // "SEMAINE" ou "MOIS"
+    private String periode;
     private Integer totalOffres;
     private Integer totalVues;
     private Integer totalFavoris;
     private String cheminFichierPdf;
     
     // Constructeurs
-    public RapportVendor() {}
+    public RapportVendor() {
+        this.dateGeneration = LocalDateTime.now();
+    }
     
     public RapportVendor(User vendor, String periode, Integer totalOffres, 
                         Integer totalVues, Integer totalFavoris) {

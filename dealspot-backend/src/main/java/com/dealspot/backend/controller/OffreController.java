@@ -4,7 +4,6 @@ import com.dealspot.backend.dto.OffreRequest;
 import com.dealspot.backend.entity.Offre;
 import com.dealspot.backend.entity.User;
 import com.dealspot.backend.service.OffreService;
-import com.dealspot.backend.service.StatistiquesService;
 import com.dealspot.backend.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -24,10 +23,6 @@ public class OffreController {
     
     @Autowired
     private UserService userService;
- // AJOUTER À LA FIN DE OffreController.java (avant la dernière accolade)
-
-    @Autowired
-    private StatistiquesService statistiquesService;
     
     // Recherche par mot-clé
     @GetMapping("/search")

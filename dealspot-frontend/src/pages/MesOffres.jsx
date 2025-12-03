@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { getAllOffres, deleteOffre } from '../services/api';
-import { Plus, Edit, Trash2, MapPin, Calendar, Tag } from 'lucide-react';
+import { Plus, Edit, Trash2, MapPin, Calendar, Tag, TrendingUp } from 'lucide-react';
 import { usePopup } from '../components/Popup';
 
 function MesOffres() {
@@ -79,11 +79,24 @@ function MesOffres() {
                 <p className="text-emerald-200 text-sm">Gérez vos offres publiées</p>
               </div>
             </div>
+            
+            {/* SECTION MODIFIÉE : Ajout du bouton Statistiques */}
             <div className="flex items-center gap-3">
               <div className="bg-white/10 backdrop-blur-sm rounded-xl px-4 py-2 text-center">
                 <div className="text-xl font-bold">{mesOffres.length}</div>
                 <div className="text-emerald-200 text-xs">Offres</div>
               </div>
+              
+              {/* NOUVEAU : Bouton Statistiques */}
+              <button
+                onClick={() => navigate('/vendor/statistiques')}
+                className="bg-white text-emerald-600 px-4 py-2 rounded-lg font-semibold hover:bg-emerald-50 flex items-center gap-2 shadow-md transition-all"
+              >
+                <TrendingUp className="w-4 h-4" />
+                <span className="hidden sm:inline">Statistiques</span>
+              </button>
+              
+              {/* Bouton Nouvelle Offre (existant) */}
               <button
                 onClick={() => navigate('/create-offre')}
                 className="bg-white text-emerald-600 px-4 py-2 rounded-lg font-semibold hover:bg-emerald-50 flex items-center gap-2 shadow-md transition-all"

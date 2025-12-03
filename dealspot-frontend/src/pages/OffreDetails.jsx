@@ -1,8 +1,9 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { getOffreById, addFavori, removeFavori, getFavoris } from '../services/api';
-import { Heart, MapPin, Calendar, Tag, ArrowLeft, User } from 'lucide-react';
+import { Heart, MapPin, Calendar, Tag, ArrowLeft, User, Eye } from 'lucide-react';
 import { usePopup } from '../components/Popup';
+import axios from 'axios';
 
 function OffreDetails() {
   const { id } = useParams();
@@ -18,7 +19,17 @@ function OffreDetails() {
     if (user.id) {
       checkIfFavori();
     }
+    // Incrémenter le compteur de vues
+    incrementerVue();
   }, [id]);
+
+  const incrementerVue = async () => {
+    try {
+      await axios.post(`http://localhost:8081/api/offres/${id}/vue`);
+    } catch (error) {
+      console.error('Erreur incrémentation vue:', error);
+    }
+  };
 
   const fetchOffre = async () => {
     try {
@@ -130,14 +141,26 @@ function OffreDetails() {
 
             {/* Contenu */}
             <div className="p-8">
-              {/* Badge réduction */}
-              <div className="flex items-center gap-3 mb-4">
+              {/* Badges */}
+              <div className="flex items-center gap-3 mb-4 flex-wrap">
                 <span className="bg-red-500 text-white px-4 py-2 rounded-full text-lg font-bold">
                   -{reduction}%
                 </span>
                 <span className="bg-blue-100 text-blue-600 px-3 py-1 rounded-full text-sm font-medium">
                   {offre.categorie}
                 </span>
+                {offre.estCoupDeCoeur && (
+                  <span className="bg-gradient-to-r from-purple-500 to-pink-500 text-white px-3 py-1 rounded-full text-sm font-bold flex items-center gap-1">
+                    <Heart className="w-4 h-4 fill-current" />
+                    Coup de Cœur
+                  </span>
+                )}
+                {offre.nombreVues > 0 && (
+                  <span className="bg-gray-100 text-gray-600 px-3 py-1 rounded-full text-sm font-medium flex items-center gap-1">
+                    <Eye className="w-4 h-4" />
+                    {offre.nombreVues} vue{offre.nombreVues > 1 ? 's' : ''}
+                  </span>
+                )}
               </div>
 
               {/* Titre */}
@@ -176,6 +199,11 @@ function OffreDetails() {
                   <div className="flex items-center gap-3 text-gray-600">
                     <User className="w-5 h-5 text-purple-500" />
                     <span>Vendeur : {offre.user.username}</span>
+                    {offre.user.badge && (
+                      <span className="text-sm font-semibold text-purple-600">
+                        {offre.user.badge}
+                      </span>
+                    )}
                   </div>
                 )}
               </div>

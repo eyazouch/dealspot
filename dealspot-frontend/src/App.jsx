@@ -10,6 +10,7 @@ import Favoris from './pages/Favoris';
 import OffreDetails from './pages/OffreDetails';
 import EditOffre from './pages/EditOffre';
 import { ConfirmPopup } from './components/Popup';
+import VendorStatistiques from './pages/VendorStatistiques';
 
 function Navigation() {
   const navigate = useNavigate();
@@ -136,6 +137,7 @@ function App() {
           <Route path="/favoris" element={<Favoris />} />
           <Route path="/offre/:id" element={<OffreDetails />} />
           <Route path="/edit-offre/:id" element={<EditOffre />} />
+          <Route path="/vendor/statistiques" element={<VendorStatistiques />} />
         </Routes>
       </div>
     </Router>

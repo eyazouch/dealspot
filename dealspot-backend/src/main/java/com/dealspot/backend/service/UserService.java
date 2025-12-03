@@ -34,16 +34,6 @@ public class UserService {
         return userRepository.findByEmail(email);
     }
     
-    // Vérifier si username existe
-    public boolean existsByUsername(String username) {
-        return userRepository.existsByUsername(username);
-    }
-    
-    // Vérifier si email existe
-    public boolean existsByEmail(String email) {
-        return userRepository.existsByEmail(email);
-    }
-    
     // Récupérer tous les utilisateurs
     public List<User> getAllUsers() {
         return userRepository.findAll();

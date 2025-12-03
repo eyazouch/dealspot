@@ -43,7 +43,7 @@ public class Offre {
     
     private LocalDateTime createdAt;
     
-    // NOUVEAU : Statistiques
+    // Statistiques
     @Column(nullable = false)
     private Long vues = 0L;
     
@@ -66,119 +66,119 @@ public class Offre {
     public Long getId() {
         return id;
     }
-
+    
     public void setId(Long id) {
         this.id = id;
     }
-
+    
     public String getTitre() {
         return titre;
     }
-
+    
     public void setTitre(String titre) {
         this.titre = titre;
     }
-
+    
     public String getDescription() {
         return description;
     }
-
+    
     public void setDescription(String description) {
         this.description = description;
     }
-
+    
     public Double getPrixOriginal() {
         return prixOriginal;
     }
-
+    
     public void setPrixOriginal(Double prixOriginal) {
         this.prixOriginal = prixOriginal;
     }
-
+    
     public Double getPrixPromo() {
         return prixPromo;
     }
-
+    
     public void setPrixPromo(Double prixPromo) {
         this.prixPromo = prixPromo;
     }
-
+    
     public String getCategorie() {
         return categorie;
     }
-
+    
     public void setCategorie(String categorie) {
         this.categorie = categorie;
     }
-
+    
     public String getLocalisation() {
         return localisation;
     }
-
+    
     public void setLocalisation(String localisation) {
         this.localisation = localisation;
     }
-
+    
     public String getImageUrl() {
         return imageUrl;
     }
-
+    
     public void setImageUrl(String imageUrl) {
         this.imageUrl = imageUrl;
     }
-
+    
     public LocalDateTime getDateDebut() {
         return dateDebut;
     }
-
+    
     public void setDateDebut(LocalDateTime dateDebut) {
         this.dateDebut = dateDebut;
     }
-
+    
     public LocalDateTime getDateExpiration() {
         return dateExpiration;
     }
-
+    
     public void setDateExpiration(LocalDateTime dateExpiration) {
         this.dateExpiration = dateExpiration;
     }
-
+    
     public User getUser() {
         return user;
     }
-
+    
     public void setUser(User user) {
         this.user = user;
     }
-
+    
     public List<Favori> getFavoris() {
         return favoris;
     }
-
+    
     public void setFavoris(List<Favori> favoris) {
         this.favoris = favoris;
     }
-
+    
     public LocalDateTime getCreatedAt() {
         return createdAt;
     }
-
+    
     public void setCreatedAt(LocalDateTime createdAt) {
         this.createdAt = createdAt;
     }
-
+    
     public Long getVues() {
         return vues;
     }
-
+    
     public void setVues(Long vues) {
         this.vues = vues;
     }
-
+    
     public Boolean getCoupDeCoeur() {
         return coupDeCoeur;
     }
-
+    
     public void setCoupDeCoeur(Boolean coupDeCoeur) {
         this.coupDeCoeur = coupDeCoeur;
     }

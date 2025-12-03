@@ -28,7 +28,7 @@ public class User {
     
     private LocalDateTime createdAt;
     
-    // NOUVEAU : Badges du vendeur
+    // Badges du vendeur
     @ElementCollection
     @CollectionTable(name = "user_badges", joinColumns = @JoinColumn(name = "user_id"))
     @Column(name = "badge")
@@ -47,7 +47,7 @@ public class User {
         this.createdAt = LocalDateTime.now();
         // Badge par défaut pour les nouveaux vendeurs
         if (this.role == Role.VENDEUR && this.badges.isEmpty()) {
-            this.badges.add("NOUVEAU_VENDEUR");
+            this.badges.add("Nouveau vendeur 🆕");
         }
     }
     
@@ -59,72 +59,102 @@ public class User {
     public Long getId() {
         return id;
     }
-
+    
     public void setId(Long id) {
         this.id = id;
     }
-
+    
     public String getUsername() {
         return username;
     }
-
+    
     public void setUsername(String username) {
         this.username = username;
     }
-
+    
     public String getEmail() {
         return email;
     }
-
+    
     public void setEmail(String email) {
         this.email = email;
     }
-
+    
     public String getPassword() {
         return password;
     }
-
+    
     public void setPassword(String password) {
         this.password = password;
     }
-
+    
     public Role getRole() {
         return role;
     }
-
+    
     public void setRole(Role role) {
         this.role = role;
     }
-
+    
     public LocalDateTime getCreatedAt() {
         return createdAt;
     }
-
+    
     public void setCreatedAt(LocalDateTime createdAt) {
         this.createdAt = createdAt;
     }
-
+    
     public List<String> getBadges() {
         return badges;
     }
-
+    
     public void setBadges(List<String> badges) {
         this.badges = badges;
     }
-
+    
     public List<Offre> getOffres() {
         return offres;
     }
-
+    
     public void setOffres(List<Offre> offres) {
         this.offres = offres;
     }
-
+    
     public List<Favori> getFavoris() {
         return favoris;
     }
-
+    
     public void setFavoris(List<Favori> favoris) {
         this.favoris = favoris;
+    }
+    
+    // MÉTHODES HELPERS POUR LA COMPATIBILITÉ
+    
+    public String getBadge() {
+        if (badges == null || badges.isEmpty()) {
+            return "Nouveau vendeur 🆕";
+        }
+        return badges.get(0);
+    }
+    
+    public void setBadge(String badge) {
+        if (this.badges == null) {
+            this.badges = new ArrayList<>();
+        }
+        if (!this.badges.contains(badge)) {
+            this.badges.add(badge);
+        }
+    }
+    
+    public String getRoleString() {
+        return this.role != null ? this.role.name() : null;
+    }
+    
+    public boolean isVendeur() {
+        return this.role == Role.VENDEUR;
+    }
+    
+    public String getNom() {
+        return this.username;
     }
 }

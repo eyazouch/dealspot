@@ -25,13 +25,13 @@ public class AuthController {
     public ResponseEntity<?> register(@RequestBody RegisterRequest request) {
         try {
             // Vérifier si username existe déjà
-            if (userService.existsByUsername(request.getUsername())) {
+            if (userService.getUserByUsername(request.getUsername()).isPresent()) {
                 return ResponseEntity.badRequest()
                     .body(Map.of("error", "Ce nom d'utilisateur existe déjà"));
             }
             
             // Vérifier si email existe déjà
-            if (userService.existsByEmail(request.getEmail())) {
+            if (userService.getUserByEmail(request.getEmail()).isPresent()) {
                 return ResponseEntity.badRequest()
                     .body(Map.of("error", "Cet email est déjà utilisé"));
             }
@@ -50,7 +50,7 @@ public class AuthController {
             response.put("id", savedUser.getId());
             response.put("username", savedUser.getUsername());
             response.put("email", savedUser.getEmail());
-            response.put("role", savedUser.getRole());
+            response.put("role", savedUser.getRole().name()); // Convertir ENUM en String
             response.put("message", "Inscription réussie");
             
             return ResponseEntity.status(HttpStatus.CREATED).body(response);
@@ -85,7 +85,7 @@ public class AuthController {
             response.put("id", user.getId());
             response.put("username", user.getUsername());
             response.put("email", user.getEmail());
-            response.put("role", user.getRole());
+            response.put("role", user.getRole().name()); // Convertir ENUM en String
             response.put("message", "Connexion réussie");
             
             return ResponseEntity.ok(response);
