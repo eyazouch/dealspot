@@ -1,12 +1,13 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, TrendingUp, Eye, Heart, Package, Award, Calendar } from 'lucide-react';
+import { ArrowLeft, TrendingUp, Eye, Heart, Package, Award, Calendar, PlusCircle, Trash2, Clock } from 'lucide-react';
 import { usePopup } from '../components/Popup';
 import axios from 'axios';
 
 function VendorStatistiques() {
   const [stats, setStats] = useState(null);
   const [rapports, setRapports] = useState([]);
+  const [badges, setBadges] = useState([]);
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
   const user = JSON.parse(localStorage.getItem('user') || '{}');
@@ -25,6 +26,7 @@ function VendorStatistiques() {
     }
     fetchStatistiques();
     fetchRapports();
+    updateBadges();
   }, []);
 
   const fetchStatistiques = async () => {
@@ -49,14 +51,15 @@ function VendorStatistiques() {
     }
   };
 
-  const genererRapportManuel = async (periode) => {
+  const updateBadges = async () => {
     try {
-      await axios.post(`http://localhost:8081/api/rapports/vendor/${user.id}/generer?periode=${periode}`);
-      showNotification(`Rapport ${periode.toLowerCase()} généré avec succès !`, 'success');
-      fetchRapports();
+      const response = await axios.post(`http://localhost:8081/api/vendeur/update-badges?userId=${user.id}`);
+      setBadges(response.data.badges || []);
+      // Mettre à jour le localStorage avec les nouveaux badges
+      const updatedUser = { ...user, badges: response.data.badges };
+      localStorage.setItem('user', JSON.stringify(updatedUser));
     } catch (error) {
-      console.error('Erreur génération rapport:', error);
-      showNotification('Erreur lors de la génération du rapport', 'error');
+      console.error('Erreur mise à jour badges:', error);
     }
   };
 
@@ -106,18 +109,19 @@ function VendorStatistiques() {
       </header>
 
       <div className="container mx-auto px-4 py-8">
-        {/* Badge du vendeur */}
-        {user.badge && (
+        {/* Badges du vendeur */}
+        {badges.length > 0 && (
           <div className="bg-gradient-to-r from-purple-100 to-pink-100 border-2 border-purple-300 rounded-xl p-4 mb-8 flex items-center gap-4">
             <Award className="w-12 h-12 text-purple-600" />
             <div>
-              <h3 className="text-lg font-bold text-gray-800">Votre Badge</h3>
-              <p className="text-2xl font-bold text-purple-600">{user.badge}</p>
-              {user.badgeUpdatedAt && (
-                <p className="text-sm text-gray-600">
-                  Mis à jour le {new Date(user.badgeUpdatedAt).toLocaleDateString('fr-FR')}
-                </p>
-              )}
+              <h3 className="text-lg font-bold text-gray-800">Vos Badges</h3>
+              <div className="flex flex-wrap gap-2 mt-2">
+                {badges.map((badge, index) => (
+                  <span key={index} className="text-lg font-bold text-purple-600 bg-white px-3 py-1 rounded-full shadow-sm">
+                    {badge}
+                  </span>
+                ))}
+              </div>
             </div>
           </div>
         )}
@@ -194,27 +198,11 @@ function VendorStatistiques() {
 
         {/* Section Rapports */}
         <div className="bg-white rounded-xl shadow-md p-6">
-          <div className="flex items-center justify-between mb-6">
-            <div className="flex items-center gap-3">
-              <div className="bg-blue-100 p-2 rounded-lg">
-                <Calendar className="w-6 h-6 text-blue-600" />
-              </div>
-              <h2 className="text-2xl font-bold text-gray-800">Rapports Automatiques</h2>
+          <div className="flex items-center gap-3 mb-6">
+            <div className="bg-blue-100 p-2 rounded-lg">
+              <Calendar className="w-6 h-6 text-blue-600" />
             </div>
-            <div className="flex gap-2">
-              <button
-                onClick={() => genererRapportManuel('SEMAINE')}
-                className="bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600 transition text-sm"
-              >
-                Générer Rapport Hebdomadaire
-              </button>
-              <button
-                onClick={() => genererRapportManuel('MOIS')}
-                className="bg-purple-500 text-white px-4 py-2 rounded-lg hover:bg-purple-600 transition text-sm"
-              >
-                Générer Rapport Mensuel
-              </button>
-            </div>
+            <h2 className="text-2xl font-bold text-gray-800">Rapports Automatiques</h2>
           </div>
 
           <div className="text-sm text-gray-600 mb-4 bg-blue-50 p-4 rounded-lg">
@@ -275,6 +263,18 @@ function VendorStatistiques() {
                         <p className="text-gray-500">Favoris</p>
                         <p className="text-xl font-bold text-purple-600">{rapport.totalFavoris}</p>
                       </div>
+                      <div className="text-center">
+                        <p className="text-gray-500 flex items-center gap-1"><PlusCircle className="w-3 h-3" />Créées</p>
+                        <p className="text-xl font-bold text-emerald-600">{rapport.offresCreees || 0}</p>
+                      </div>
+                      <div className="text-center">
+                        <p className="text-gray-500 flex items-center gap-1"><Trash2 className="w-3 h-3" />Supprimées</p>
+                        <p className="text-xl font-bold text-red-600">{rapport.offresSupprimees || 0}</p>
+                      </div>
+                      <div className="text-center">
+                        <p className="text-gray-500 flex items-center gap-1"><Clock className="w-3 h-3" />Expirées</p>
+                        <p className="text-xl font-bold text-orange-600">{rapport.offresExpirees || 0}</p>
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -322,12 +322,26 @@ function VendorStatistiques() {
               <div>
                 <div className="flex items-center justify-between mb-2">
                   <span className="text-sm font-semibold text-gray-700">Vendeur Fiable ✓</span>
-                  <span className="text-sm text-gray-600">{stats.totalOffres}/20 offres</span>
+                  <span className="text-sm text-gray-600">{stats.totalOffres}/10 offres</span>
                 </div>
                 <div className="w-full bg-gray-200 rounded-full h-2">
                   <div 
                     className="bg-blue-600 h-2 rounded-full transition-all duration-500"
-                    style={{ width: `${Math.min((stats.totalOffres / 20) * 100, 100)}%` }}
+                    style={{ width: `${Math.min((stats.totalOffres / 10) * 100, 100)}%` }}
+                  ></div>
+                </div>
+              </div>
+
+              {/* Badge Vendeur Expert */}
+              <div>
+                <div className="flex items-center justify-between mb-2">
+                  <span className="text-sm font-semibold text-gray-700">Vendeur Expert 💎</span>
+                  <span className="text-sm text-gray-600">{stats.totalOffres}/50 offres</span>
+                </div>
+                <div className="w-full bg-gray-200 rounded-full h-2">
+                  <div 
+                    className="bg-cyan-600 h-2 rounded-full transition-all duration-500"
+                    style={{ width: `${Math.min((stats.totalOffres / 50) * 100, 100)}%` }}
                   ></div>
                 </div>
               </div>
@@ -336,12 +350,26 @@ function VendorStatistiques() {
               <div>
                 <div className="flex items-center justify-between mb-2">
                   <span className="text-sm font-semibold text-gray-700">Vendeur Populaire ⭐</span>
-                  <span className="text-sm text-gray-600">{stats.totalFavoris}/50 favoris</span>
+                  <span className="text-sm text-gray-600">{stats.totalFavoris}/30 favoris</span>
                 </div>
                 <div className="w-full bg-gray-200 rounded-full h-2">
                   <div 
                     className="bg-purple-600 h-2 rounded-full transition-all duration-500"
-                    style={{ width: `${Math.min((stats.totalFavoris / 50) * 100, 100)}%` }}
+                    style={{ width: `${Math.min((stats.totalFavoris / 30) * 100, 100)}%` }}
+                  ></div>
+                </div>
+              </div>
+
+              {/* Badge Top Vendeur */}
+              <div>
+                <div className="flex items-center justify-between mb-2">
+                  <span className="text-sm font-semibold text-gray-700">Top Vendeur 🏆</span>
+                  <span className="text-sm text-gray-600">{stats.totalFavoris}/100 favoris</span>
+                </div>
+                <div className="w-full bg-gray-200 rounded-full h-2">
+                  <div 
+                    className="bg-yellow-500 h-2 rounded-full transition-all duration-500"
+                    style={{ width: `${Math.min((stats.totalFavoris / 100) * 100, 100)}%` }}
                   ></div>
                 </div>
               </div>

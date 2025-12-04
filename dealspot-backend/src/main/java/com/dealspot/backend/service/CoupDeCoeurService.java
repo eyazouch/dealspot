@@ -34,15 +34,24 @@ public class CoupDeCoeurService {
         // Récupérer toutes les offres actives
         List<Offre> offresActives = offreRepository.findByDateExpirationAfter(now);
         
-        // Calculer les scores
-        List<Offre> offresTriees = offresActives.stream()
+        // Filtrer les offres qui ont au moins 1 favori OU au moins 3 vues
+        List<Offre> offresEligibles = offresActives.stream()
+            .filter(o -> {
+                long nombreFavoris = favoriRepository.countByOffre(o);
+                long nombreVues = o.getVues() != null ? o.getVues() : 0;
+                return nombreFavoris >= 1 || nombreVues >= 3;
+            })
+            .toList();
+        
+        // Calculer les scores et trier
+        List<Offre> offresTriees = offresEligibles.stream()
             .sorted((o1, o2) -> Double.compare(calculateScore(o2), calculateScore(o1)))
             .toList();
         
         // Réinitialiser tous les coups de cœur
         offresActives.forEach(o -> o.setCoupDeCoeur(false));
         
-        // Marquer les top 10 comme coups de cœur
+        // Marquer les top 10 comme coups de cœur (parmi les offres éligibles)
         int limit = Math.min(10, offresTriees.size());
         for (int i = 0; i < limit; i++) {
             offresTriees.get(i).setCoupDeCoeur(true);

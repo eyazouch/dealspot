@@ -93,6 +93,12 @@ function EditOffre() {
       return;
     }
 
+    // Validation des dates
+    if (new Date(formData.dateDebut) > new Date(formData.dateExpiration)) {
+      showNotification('La date de début doit être antérieure ou égale à la date d\'expiration', 'error');
+      return;
+    }
+
     try {
       await updateOffre(id, formData, user.id);
       showNotification('Offre modifiée avec succès !', 'success');
@@ -182,7 +188,7 @@ function EditOffre() {
                   onChange={handleChange}
                   required
                   min="0"
-                  step="0.01"
+                  step="any"
                   className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
                   placeholder="2500"
                 />
@@ -199,7 +205,7 @@ function EditOffre() {
                   onChange={handleChange}
                   required
                   min="0"
-                  step="0.01"
+                  step="any"
                   className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
                   placeholder="1999"
                 />

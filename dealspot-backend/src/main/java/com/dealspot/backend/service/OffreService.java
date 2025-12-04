@@ -48,11 +48,9 @@ public class OffreService {
         );
     }
     
-    // Récupérer les offres par localisation (actives)
+    // Récupérer les offres par localisation (actives) - recherche partielle
     public List<Offre> getOffresByLocalisation(String localisation) {
-        return offreRepository.findByLocalisationAndDateExpirationAfter(
-            localisation, LocalDateTime.now()
-        );
+        return offreRepository.searchByLocalisation(localisation, LocalDateTime.now());
     }
     
     // Mettre à jour une offre

@@ -73,4 +73,34 @@ public class VendeurController {
                 .body(Map.of("error", e.getMessage()));
         }
     }
+    
+    // Mettre à jour les badges et retourner l'utilisateur mis à jour
+    @PostMapping("/update-badges")
+    public ResponseEntity<?> updateBadges(@RequestParam Long userId) {
+        try {
+            User vendeur = userService.getUserById(userId)
+                .orElseThrow(() -> new RuntimeException("Vendeur non trouvé"));
+            
+            if (vendeur.getRole() != User.Role.VENDEUR) {
+                return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                    .body(Map.of("error", "Accès réservé aux vendeurs"));
+            }
+            
+            // Mettre à jour les badges
+            badgeService.updateBadges(vendeur);
+            
+            // Recharger l'utilisateur après mise à jour
+            User updatedVendeur = userService.getUserById(userId).orElse(vendeur);
+            
+            return ResponseEntity.ok(Map.of(
+                "message", "Badges mis à jour",
+                "badges", updatedVendeur.getBadges(),
+                "user", updatedVendeur
+            ));
+            
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                .body(Map.of("error", e.getMessage()));
+        }
+    }
 }

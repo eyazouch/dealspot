@@ -3,8 +3,12 @@ package com.dealspot.backend.controller;
 import com.dealspot.backend.dto.OffreRequest;
 import com.dealspot.backend.entity.Offre;
 import com.dealspot.backend.entity.User;
+import com.dealspot.backend.entity.OffreSuppressionLog;
 import com.dealspot.backend.service.OffreService;
 import com.dealspot.backend.service.UserService;
+import com.dealspot.backend.service.BadgeService;
+import com.dealspot.backend.service.CoupDeCoeurService;
+import com.dealspot.backend.repository.OffreSuppressionLogRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -23,6 +27,15 @@ public class OffreController {
     
     @Autowired
     private UserService userService;
+    
+    @Autowired
+    private BadgeService badgeService;
+    
+    @Autowired
+    private CoupDeCoeurService coupDeCoeurService;
+    
+    @Autowired
+    private OffreSuppressionLogRepository suppressionLogRepository;
     
     // Recherche par mot-clé
     @GetMapping("/search")
@@ -43,6 +56,8 @@ public class OffreController {
     public ResponseEntity<?> incrementVues(@PathVariable Long id) {
         try {
             offreService.incrementVues(id);
+            // Mettre à jour les coups de cœur après incrémentation des vues
+            coupDeCoeurService.updateCoupsDeCoeur();
             return ResponseEntity.ok(Map.of("message", "Vue comptabilisée"));
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
@@ -94,6 +109,9 @@ public class OffreController {
             offre.setUser(user);
             
             Offre savedOffre = offreService.createOffre(offre);
+            
+            // Mettre à jour les badges du vendeur
+            badgeService.updateBadges(user);
             
             return ResponseEntity.status(HttpStatus.CREATED).body(savedOffre);
             
@@ -155,7 +173,15 @@ public class OffreController {
                     .body(Map.of("error", "Vous ne pouvez supprimer que vos propres offres"));
             }
             
+            // Enregistrer la suppression dans le log
+            OffreSuppressionLog log = new OffreSuppressionLog(offre.getUser(), offre.getTitre());
+            suppressionLogRepository.save(log);
+            
+            User user = offre.getUser();
             offreService.deleteOffre(id);
+            
+            // Mettre à jour les badges du vendeur
+            badgeService.updateBadges(user);
             
             return ResponseEntity.ok(Map.of("message", "Offre supprimée avec succès"));
             

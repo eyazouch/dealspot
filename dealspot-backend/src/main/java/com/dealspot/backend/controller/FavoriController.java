@@ -6,6 +6,7 @@ import com.dealspot.backend.entity.User;
 import com.dealspot.backend.service.FavoriService;
 import com.dealspot.backend.service.OffreService;
 import com.dealspot.backend.service.UserService;
+import com.dealspot.backend.service.CoupDeCoeurService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -27,6 +28,9 @@ public class FavoriController {
     
     @Autowired
     private OffreService offreService;
+    
+    @Autowired
+    private CoupDeCoeurService coupDeCoeurService;
     
     // Récupérer les favoris d'un utilisateur
     @GetMapping
@@ -58,6 +62,9 @@ public class FavoriController {
             
             Favori favori = favoriService.addFavori(user, offre);
             
+            // Mettre à jour les coups de cœur après ajout de favori
+            coupDeCoeurService.updateCoupsDeCoeur();
+            
             return ResponseEntity.status(HttpStatus.CREATED).body(favori);
             
         } catch (RuntimeException e) {
@@ -81,6 +88,9 @@ public class FavoriController {
                 .orElseThrow(() -> new RuntimeException("Offre non trouvée"));
             
             favoriService.removeFavori(user, offre);
+            
+            // Mettre à jour les coups de cœur après suppression de favori
+            coupDeCoeurService.updateCoupsDeCoeur();
             
             return ResponseEntity.ok(Map.of("message", "Retiré des favoris"));
             

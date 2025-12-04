@@ -10,6 +10,7 @@ import com.dealspot.backend.repository.RapportVendorRepository;
 import com.dealspot.backend.repository.UserRepository;
 import com.dealspot.backend.repository.OffreRepository;
 import com.dealspot.backend.repository.FavoriRepository;
+import com.dealspot.backend.repository.OffreSuppressionLogRepository;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -28,6 +29,9 @@ public class RapportService {
 
     @Autowired
     private FavoriRepository favoriRepository;
+    
+    @Autowired
+    private OffreSuppressionLogRepository suppressionLogRepository;
 
     @Scheduled(cron = "0 0 8 * * MON")
     @Transactional
@@ -71,6 +75,16 @@ public class RapportService {
 
     @Transactional
     public RapportVendor genererRapport(User vendor, String periode) {
+        LocalDateTime now = LocalDateTime.now();
+        LocalDateTime dateDebut;
+        
+        // Calculer la période
+        if ("SEMAINE".equals(periode)) {
+            dateDebut = now.minusWeeks(1);
+        } else {
+            dateDebut = now.minusMonths(1);
+        }
+        
         int totalOffres = offreRepository.findByUser(vendor).size();
 
         long totalVues = offreRepository.findByUser(vendor).stream()
@@ -78,6 +92,11 @@ public class RapportService {
             .sum();
 
         long totalFavoris = favoriRepository.countByVendeur(vendor);
+        
+        // Nouvelles statistiques
+        Integer offresCreees = offreRepository.countOffresCreees(vendor, dateDebut, now);
+        Integer offresSupprimees = suppressionLogRepository.countOffresSupprimees(vendor, dateDebut, now);
+        Integer offresExpirees = offreRepository.countOffresExpirees(vendor, dateDebut, now);
 
         RapportVendor rapport = new RapportVendor();
         rapport.setVendor(vendor);
@@ -86,6 +105,9 @@ public class RapportService {
         rapport.setTotalOffres(totalOffres);
         rapport.setTotalVues((int) totalVues);
         rapport.setTotalFavoris((int) totalFavoris);
+        rapport.setOffresCreees(offresCreees != null ? offresCreees : 0);
+        rapport.setOffresSupprimees(offresSupprimees != null ? offresSupprimees : 0);
+        rapport.setOffresExpirees(offresExpirees != null ? offresExpirees : 0);
 
         return rapportRepository.save(rapport);
     }

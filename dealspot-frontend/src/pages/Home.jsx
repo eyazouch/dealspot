@@ -70,11 +70,11 @@ function Home() {
   const [coupsDeCoeur, setCoupsDeCoeur] = useState([]);
   const [loading, setLoading] = useState(true);
   const [categorie, setCategorie] = useState('');
-  const [localisation, setLocalisation] = useState('');
   const [searchKeyword, setSearchKeyword] = useState('');
   const [isSearching, setIsSearching] = useState(false);
   const [favorisIds, setFavorisIds] = useState([]);
   const [showAllExpiring, setShowAllExpiring] = useState(false);
+  const [showAllCoupsDeCoeur, setShowAllCoupsDeCoeur] = useState(false);
   const navigate = useNavigate();
   const user = JSON.parse(localStorage.getItem('user') || '{}');
   const { showNotification, PopupComponents } = usePopup();
@@ -124,17 +124,40 @@ function Home() {
     e.preventDefault();
     
     if (searchKeyword.trim() === '') {
-      fetchOffres();
+      if (categorie) {
+        handleFilter(categorie);
+      } else {
+        fetchOffres();
+      }
       return;
     }
 
     try {
       setLoading(true);
       setIsSearching(true);
-      const response = await axios.get(`http://localhost:8081/api/offres/search?keyword=${searchKeyword}`);
-      setOffres(response.data);
-      setCategorie('');
-      setLocalisation('');
+      
+      // Rechercher par mot-clé
+      const keywordResponse = await axios.get(`http://localhost:8081/api/offres/search?keyword=${searchKeyword}`);
+      
+      // Rechercher par localisation
+      const locationResponse = await getOffresByLocalisation(searchKeyword);
+      
+      // Combiner les résultats (sans doublons)
+      const keywordResults = keywordResponse.data;
+      const locationResults = locationResponse.data;
+      
+      const combinedMap = new Map();
+      keywordResults.forEach(offre => combinedMap.set(offre.id, offre));
+      locationResults.forEach(offre => combinedMap.set(offre.id, offre));
+      
+      let combinedResults = Array.from(combinedMap.values());
+      
+      // Filtrer par catégorie si une catégorie est sélectionnée
+      if (categorie) {
+        combinedResults = combinedResults.filter(offre => offre.categorie === categorie);
+      }
+      
+      setOffres(combinedResults);
     } catch (error) {
       console.error('Erreur recherche:', error);
       showNotification('Erreur lors de la recherche', 'error');
@@ -157,8 +180,6 @@ function Home() {
       let response;
       if (selectedCategorie) {
         response = await getOffresByCategorie(selectedCategorie);
-      } else if (localisation) {
-        response = await getOffresByLocalisation(localisation);
       } else {
         response = await getAllOffres();
       }
@@ -170,19 +191,59 @@ function Home() {
     }
   };
 
-  const handleCategoryClick = (categoryId) => {
+  const handleCategoryClick = async (categoryId) => {
     if (categorie === categoryId) {
+      // Désélectionner la catégorie
       setCategorie('');
-      fetchOffres();
+      if (isSearching && searchKeyword.trim() !== '') {
+        // Relancer la recherche sans filtre catégorie
+        try {
+          setLoading(true);
+          const keywordResponse = await axios.get(`http://localhost:8081/api/offres/search?keyword=${searchKeyword}`);
+          const locationResponse = await getOffresByLocalisation(searchKeyword);
+          
+          const combinedMap = new Map();
+          keywordResponse.data.forEach(offre => combinedMap.set(offre.id, offre));
+          locationResponse.data.forEach(offre => combinedMap.set(offre.id, offre));
+          
+          setOffres(Array.from(combinedMap.values()));
+        } catch (error) {
+          console.error('Erreur:', error);
+        } finally {
+          setLoading(false);
+        }
+      } else {
+        fetchOffres();
+      }
     } else {
+      // Sélectionner une nouvelle catégorie
       setCategorie(categoryId);
-      handleFilter(categoryId);
+      if (isSearching && searchKeyword.trim() !== '') {
+        // Relancer la recherche avec le nouveau filtre catégorie
+        try {
+          setLoading(true);
+          const keywordResponse = await axios.get(`http://localhost:8081/api/offres/search?keyword=${searchKeyword}`);
+          const locationResponse = await getOffresByLocalisation(searchKeyword);
+          
+          const combinedMap = new Map();
+          keywordResponse.data.forEach(offre => combinedMap.set(offre.id, offre));
+          locationResponse.data.forEach(offre => combinedMap.set(offre.id, offre));
+          
+          const combinedResults = Array.from(combinedMap.values()).filter(offre => offre.categorie === categoryId);
+          setOffres(combinedResults);
+        } catch (error) {
+          console.error('Erreur:', error);
+        } finally {
+          setLoading(false);
+        }
+      } else {
+        handleFilter(categoryId);
+      }
     }
   };
 
   const resetFilters = () => {
     setCategorie('');
-    setLocalisation('');
     setSearchKeyword('');
     setIsSearching(false);
     fetchOffres();
@@ -211,13 +272,7 @@ function Home() {
     }
   };
 
-  const handleViewDetails = async (offreId) => {
-    // Incrémenter le compteur de vues
-    try {
-      await axios.post(`http://localhost:8081/api/offres/${offreId}/vue`);
-    } catch (error) {
-      console.error('Erreur incrémentation vue:', error);
-    }
+  const handleViewDetails = (offreId) => {
     navigate(`/offre/${offreId}`);
   };
 
@@ -270,7 +325,7 @@ function Home() {
       </header>
 
       <div className="container mx-auto px-4 py-8">
-        {/* Barre de recherche par mots-clés */}
+        {/* Barre de recherche unifiée */}
         <div className="bg-white rounded-xl shadow-sm border border-gray-100 mb-8 p-6">
           <form onSubmit={handleSearch} className="mb-6">
             <div className="flex gap-3 max-w-3xl mx-auto">
@@ -280,7 +335,7 @@ function Home() {
                   type="text"
                   value={searchKeyword}
                   onChange={(e) => setSearchKeyword(e.target.value)}
-                  placeholder="Rechercher une offre par mot-clé (ex: smartphone, laptop, vêtements...)"
+                  placeholder="Rechercher par mot-clé ou localisation"
                   className="w-full pl-10 pr-4 py-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 />
               </div>
@@ -291,7 +346,7 @@ function Home() {
                 <Search className="w-5 h-5" />
                 Rechercher
               </button>
-              {(isSearching || categorie || localisation) && (
+              {(isSearching || categorie) && (
                 <button
                   type="button"
                   onClick={resetFilters}
@@ -310,78 +365,54 @@ function Home() {
               <span className="inline-flex items-center gap-2 bg-blue-100 text-blue-700 px-4 py-2 rounded-full text-sm font-medium">
                 <Search className="w-4 h-4" />
                 {offres.length} résultat{offres.length > 1 ? 's' : ''} trouvé{offres.length > 1 ? 's' : ''} pour "{searchKeyword}"
+                {categorie && ` dans ${categorie}`}
               </span>
             </div>
           )}
 
           {/* Barre de catégories avec icônes */}
-          {!isSearching && (
-            <>
-              <div className="flex flex-wrap justify-center gap-4 md:gap-8 mb-6">
-                {categories.map((cat) => {
-                  const IconComponent = cat.icon;
-                  const isActive = categorie === cat.id;
-                  return (
-                    <button
-                      key={cat.id}
-                      onClick={() => handleCategoryClick(cat.id)}
-                      className={`flex flex-col items-center gap-2 px-4 py-3 rounded-lg transition-all duration-200 min-w-[80px] ${
-                        isActive
-                          ? 'bg-blue-50 text-blue-600 border-b-2 border-blue-600'
-                          : 'text-gray-600 hover:text-blue-600 hover:bg-gray-50'
-                      }`}
-                    >
-                      <IconComponent className={`w-6 h-6 ${isActive ? 'text-blue-600' : 'text-gray-500'}`} />
-                      <span className={`text-xs font-medium text-center ${isActive ? 'text-blue-600 border-b border-blue-600' : ''}`}>
-                        {cat.label}
-                      </span>
-                    </button>
-                  );
-                })}
-              </div>
-
-              {/* Barre de recherche par localisation */}
-              <div className="flex flex-col sm:flex-row gap-3 max-w-2xl mx-auto">
-                <div className="flex-1 relative">
-                  <MapPin className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
-                  <input
-                    type="text"
-                    value={localisation}
-                    onChange={(e) => setLocalisation(e.target.value)}
-                    placeholder="Rechercher par localisation..."
-                    className="w-full pl-10 pr-4 py-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  />
-                </div>
+          <div className="flex flex-wrap justify-center gap-4 md:gap-8 mb-6">
+            {categories.map((cat) => {
+              const IconComponent = cat.icon;
+              const isActive = categorie === cat.id;
+              return (
                 <button
-                  onClick={() => handleFilter()}
-                  className="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition-colors flex items-center justify-center gap-2 font-medium"
+                  key={cat.id}
+                  onClick={() => handleCategoryClick(cat.id)}
+                  className={`flex flex-col items-center gap-2 px-4 py-3 rounded-lg transition-all duration-200 min-w-[80px] ${
+                    isActive
+                      ? 'bg-blue-50 text-blue-600 border-b-2 border-blue-600'
+                      : 'text-gray-600 hover:text-blue-600 hover:bg-gray-50'
+                  }`}
                 >
-                  <Search className="w-5 h-5" />
-                  Rechercher
-                </button>
-              </div>
-
-              {/* Filtre actif */}
-              {categorie && (
-                <div className="mt-4 flex justify-center">
-                  <span className="inline-flex items-center gap-2 bg-blue-100 text-blue-700 px-4 py-2 rounded-full text-sm font-medium">
-                    <Tag className="w-4 h-4" />
-                    Catégorie : {categorie}
-                    <button
-                      onClick={() => { setCategorie(''); fetchOffres(); }}
-                      className="ml-1 hover:text-blue-900"
-                    >
-                      ×
-                    </button>
+                  <IconComponent className={`w-6 h-6 ${isActive ? 'text-blue-600' : 'text-gray-500'}`} />
+                  <span className={`text-xs font-medium text-center ${isActive ? 'text-blue-600 border-b border-blue-600' : ''}`}>
+                    {cat.label}
                   </span>
-                </div>
-              )}
-            </>
+                </button>
+              );
+            })}
+          </div>
+
+          {/* Filtre actif */}
+          {categorie && (
+            <div className="mt-4 flex justify-center">
+              <span className="inline-flex items-center gap-2 bg-blue-100 text-blue-700 px-4 py-2 rounded-full text-sm font-medium">
+                <Tag className="w-4 h-4" />
+                Catégorie : {categorie}
+                <button
+                  onClick={() => handleCategoryClick(categorie)}
+                  className="ml-1 hover:text-blue-900"
+                >
+                  ×
+                </button>
+              </span>
+            </div>
           )}
         </div>
 
         {/* Section Coups de Cœur */}
-        {!isSearching && coupsDeCoeur.length > 0 && (
+        {!isSearching && !categorie && coupsDeCoeur.length > 0 && (
           <div className="mb-8">
             <div className="bg-gradient-to-r from-purple-500 via-pink-500 to-red-500 rounded-xl p-1">
               <div className="bg-white rounded-lg p-6">
@@ -401,7 +432,7 @@ function Home() {
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4">
-                  {coupsDeCoeur.map((offre) => (
+                  {(showAllCoupsDeCoeur ? coupsDeCoeur : coupsDeCoeur.slice(0, 5)).map((offre) => (
                     <div 
                       key={offre.id} 
                       className="bg-gradient-to-br from-purple-50 to-pink-50 border-2 border-purple-200 rounded-xl overflow-hidden hover:shadow-lg transition-all hover:scale-[1.02] cursor-pointer"
@@ -444,13 +475,25 @@ function Home() {
                     </div>
                   ))}
                 </div>
+
+                {/* Bouton Voir plus / Voir moins */}
+                {coupsDeCoeur.length > 5 && (
+                  <div className="mt-4 text-center">
+                    <button
+                      onClick={() => setShowAllCoupsDeCoeur(!showAllCoupsDeCoeur)}
+                      className="text-purple-600 italic underline underline-offset-2 decoration-1 hover:text-purple-700 transition-colors"
+                    >
+                      {showAllCoupsDeCoeur ? 'Voir moins' : `Voir plus (${coupsDeCoeur.length - 5} autres)`}
+                    </button>
+                  </div>
+                )}
               </div>
             </div>
           </div>
         )}
 
         {/* Section Bientôt Expiré */}
-        {!isSearching && expiringOffers.length > 0 && (
+        {!isSearching && !categorie && expiringOffers.length > 0 && (
           <div className="mb-8">
             <div className="bg-gradient-to-r from-red-500 via-orange-500 to-yellow-500 rounded-xl p-1">
               <div className="bg-white rounded-lg p-6">

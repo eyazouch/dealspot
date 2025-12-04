@@ -45,10 +45,6 @@ public class User {
     @PrePersist
     protected void onCreate() {
         this.createdAt = LocalDateTime.now();
-        // Badge par défaut pour les nouveaux vendeurs
-        if (this.role == Role.VENDEUR && this.badges.isEmpty()) {
-            this.badges.add("Nouveau vendeur 🆕");
-        }
     }
     
     public enum Role {
@@ -132,7 +128,7 @@ public class User {
     
     public String getBadge() {
         if (badges == null || badges.isEmpty()) {
-            return "Nouveau vendeur 🆕";
+            return null;
         }
         return badges.get(0);
     }

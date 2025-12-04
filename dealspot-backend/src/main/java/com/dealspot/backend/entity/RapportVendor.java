@@ -20,6 +20,9 @@ public class RapportVendor {
     private Integer totalOffres;
     private Integer totalVues;
     private Integer totalFavoris;
+    private Integer offresCreees;
+    private Integer offresSupprimees;
+    private Integer offresExpirees;
     private String cheminFichierPdf;
     
     // Constructeurs
@@ -28,13 +31,17 @@ public class RapportVendor {
     }
     
     public RapportVendor(User vendor, String periode, Integer totalOffres, 
-                        Integer totalVues, Integer totalFavoris) {
+                        Integer totalVues, Integer totalFavoris,
+                        Integer offresCreees, Integer offresSupprimees, Integer offresExpirees) {
         this.vendor = vendor;
         this.dateGeneration = LocalDateTime.now();
         this.periode = periode;
         this.totalOffres = totalOffres;
         this.totalVues = totalVues;
         this.totalFavoris = totalFavoris;
+        this.offresCreees = offresCreees;
+        this.offresSupprimees = offresSupprimees;
+        this.offresExpirees = offresExpirees;
     }
     
     // Getters et Setters
@@ -100,5 +107,29 @@ public class RapportVendor {
     
     public void setCheminFichierPdf(String cheminFichierPdf) {
         this.cheminFichierPdf = cheminFichierPdf;
+    }
+    
+    public Integer getOffresCreees() {
+        return offresCreees;
+    }
+    
+    public void setOffresCreees(Integer offresCreees) {
+        this.offresCreees = offresCreees;
+    }
+    
+    public Integer getOffresSupprimees() {
+        return offresSupprimees;
+    }
+    
+    public void setOffresSupprimees(Integer offresSupprimees) {
+        this.offresSupprimees = offresSupprimees;
+    }
+    
+    public Integer getOffresExpirees() {
+        return offresExpirees;
+    }
+    
+    public void setOffresExpirees(Integer offresExpirees) {
+        this.offresExpirees = offresExpirees;
     }
 }

@@ -19,6 +19,10 @@ public interface OffreRepository extends JpaRepository<Offre, Long> {
     List<Offre> findByUser(User user);
     List<Offre> findByCategorieAndDateExpirationAfter(String categorie, LocalDateTime date);
     List<Offre> findByLocalisationAndDateExpirationAfter(String localisation, LocalDateTime date);
+    
+    // Recherche partielle par localisation
+    @Query("SELECT o FROM Offre o WHERE LOWER(o.localisation) LIKE LOWER(CONCAT('%', :localisation, '%')) AND o.dateExpiration > :now")
+    List<Offre> searchByLocalisation(@Param("localisation") String localisation, @Param("now") LocalDateTime now);
 
     // Recherche par mots-clés
     @Query("SELECT o FROM Offre o WHERE " +
@@ -37,4 +41,12 @@ public interface OffreRepository extends JpaRepository<Offre, Long> {
     
     // Version simple pour coups de cœur (sans date)
     List<Offre> findByCoupDeCoeurTrue();
+    
+    // Offres créées par un vendeur dans une période
+    @Query("SELECT COUNT(o) FROM Offre o WHERE o.user = :user AND o.createdAt >= :dateDebut AND o.createdAt <= :dateFin")
+    Integer countOffresCreees(@Param("user") User user, @Param("dateDebut") LocalDateTime dateDebut, @Param("dateFin") LocalDateTime dateFin);
+    
+    // Offres expirées d'un vendeur dans une période
+    @Query("SELECT COUNT(o) FROM Offre o WHERE o.user = :user AND o.dateExpiration >= :dateDebut AND o.dateExpiration <= :dateFin")
+    Integer countOffresExpirees(@Param("user") User user, @Param("dateDebut") LocalDateTime dateDebut, @Param("dateFin") LocalDateTime dateFin);
 }

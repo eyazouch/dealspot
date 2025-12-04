@@ -199,9 +199,9 @@ function OffreDetails() {
                   <div className="flex items-center gap-3 text-gray-600">
                     <User className="w-5 h-5 text-purple-500" />
                     <span>Vendeur : {offre.user.username}</span>
-                    {offre.user.badge && (
-                      <span className="text-sm font-semibold text-purple-600">
-                        {offre.user.badge}
+                    {offre.user.badges && offre.user.badges.length > 0 && (
+                      <span className="text-sm font-semibold text-purple-600 bg-purple-100 px-2 py-1 rounded-full">
+                        {offre.user.badges[0]}
                       </span>
                     )}
                   </div>

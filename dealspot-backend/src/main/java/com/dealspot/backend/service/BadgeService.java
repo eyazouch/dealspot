@@ -36,34 +36,24 @@ public class BadgeService {
         // Compter les favoris totaux du vendeur
         long nombreFavoris = favoriRepository.countByVendeur(user);
         
-        // Badge : Nouveau vendeur (toujours présent au début)
-        if (nombreOffres < 5) {
-            badges.add("NOUVEAU_VENDEUR");
+        // Badge : Vendeur fiable (10+ offres)
+        if (nombreOffres >= 10) {
+            badges.add("Vendeur Fiable ✓");
         }
         
-        // Badge : Vendeur actif (5-19 offres)
-        if (nombreOffres >= 5 && nombreOffres < 20) {
-            badges.add("VENDEUR_ACTIF");
-        }
-        
-        // Badge : Vendeur fiable (20+ offres)
-        if (nombreOffres >= 20) {
-            badges.add("VENDEUR_FIABLE");
-        }
-        
-        // Badge : Vendeur populaire (50+ favoris)
-        if (nombreFavoris >= 50) {
-            badges.add("VENDEUR_POPULAIRE");
+        // Badge : Vendeur populaire (30+ favoris)
+        if (nombreFavoris >= 30) {
+            badges.add("Vendeur Populaire ⭐");
         }
         
         // Badge : Top vendeur (100+ favoris)
         if (nombreFavoris >= 100) {
-            badges.add("TOP_VENDEUR");
+            badges.add("Top Vendeur 🏆");
         }
         
         // Badge : Vendeur expert (50+ offres)
         if (nombreOffres >= 50) {
-            badges.add("VENDEUR_EXPERT");
+            badges.add("Vendeur Expert 💎");
         }
         
         user.setBadges(badges);
