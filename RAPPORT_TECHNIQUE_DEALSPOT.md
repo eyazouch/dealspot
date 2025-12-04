@@ -76,7 +76,7 @@ dealspot/
 │       ├── config/             # Configuration (CORS, Security, Tasks)
 │       ├── controller/         # Contrôleurs REST (6 contrôleurs)
 │       ├── dto/                # Data Transfer Objects
-│       ├── entity/             # Entités JPA (6 entités)
+│       ├── entity/             # Entités JPA (5 entités)
 │       ├── exception/          # Gestion des exceptions
 │       ├── repository/         # Repositories JPA
 │       └── service/            # Services métier (7 services)
@@ -157,7 +157,7 @@ public class Offre {
 #### Favori
 ```java
 @Entity
-@Table(name = "favoris")
+@Table(name = "favori")
 public class Favori {
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
@@ -165,7 +165,20 @@ public class Favori {
     private User user;
     @ManyToOne
     private Offre offre;
-    private LocalDateTime createdAt;
+}
+```
+
+#### OffreSuppressionLog
+```java
+@Entity
+@Table(name = "offre_suppression_log")
+public class OffreSuppressionLog {
+    @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+    @ManyToOne
+    private User user;              // Vendeur qui a supprimé
+    private String titreSupprime;   // Titre de l'offre supprimée
+    private LocalDateTime dateSuppression;
 }
 ```
 
@@ -494,8 +507,14 @@ FROM offres WHERE user_id = 1;
 SELECT u.username, COUNT(f.id) as total_favoris
 FROM users u
 JOIN offres o ON o.user_id = u.id
-JOIN favoris f ON f.offre_id = o.id
+JOIN favori f ON f.offre_id = o.id
 GROUP BY u.id;
+
+-- Historique des suppressions d'offres
+SELECT u.username, o.titre_supprime, o.date_suppression
+FROM offre_suppression_log o
+JOIN users u ON o.user_id = u.id
+ORDER BY o.date_suppression DESC;
 
 -- Offres coup de coeur
 SELECT titre, vues, coup_de_coeur FROM offres 
@@ -571,28 +590,42 @@ CREATE DATABASE dealspot;
 
 ## 📊 10. Schéma de la Base de Données
 
+### Tables de la base de données `dealspot`
+
+| Table | Description |
+|-------|-------------|
+| `users` | Utilisateurs (USER, VENDEUR, ADMIN) |
+| `user_badges` | Badges des vendeurs |
+| `offres` | Offres promotionnelles |
+| `favori` | Favoris des utilisateurs |
+| `rapport_vendor` | Rapports statistiques des vendeurs |
+| `offre_suppression_log` | Historique des suppressions d'offres |
+
 ```
 ┌─────────────┐       ┌─────────────┐       ┌─────────────┐
-│   users     │       │   offres    │       │  favoris    │
+│   users     │       │   offres    │       │   favori    │
 ├─────────────┤       ├─────────────┤       ├─────────────┤
 │ id (PK)     │◄──┐   │ id (PK)     │◄──┐   │ id (PK)     │
 │ username    │   │   │ titre       │   │   │ user_id(FK) │──►users
 │ email       │   │   │ description │   │   │ offre_id(FK)│──►offres
-│ password    │   │   │ prix_orig   │   │   │ created_at  │
-│ role        │   │   │ prix_promo  │   │   └─────────────┘
-│ created_at  │   │   │ categorie   │   │
-└─────────────┘   │   │ localisation│   │   ┌─────────────┐
-                  │   │ image_url   │   │   │user_badges  │
-┌─────────────┐   │   │ date_debut  │   │   ├─────────────┤
-│rapport_vendor│  │   │ date_exp    │   │   │ user_id(FK) │──►users
-├─────────────┤   │   │ user_id(FK) │───┘   │ badge       │
-│ id (PK)     │   │   │ vues        │       └─────────────┘
-│ vendor_id   │───┘   │ coup_coeur  │
-│ date_gen    │       │ created_at  │
-│ periode     │       └─────────────┘
-│ total_offres│
-│ total_vues  │
-│ total_fav   │
+│ password    │   │   │ prix_orig   │   │   └─────────────┘
+│ role        │   │   │ prix_promo  │   │
+│ created_at  │   │   │ categorie   │   │   ┌─────────────┐
+└─────────────┘   │   │ localisation│   │   │user_badges  │
+                  │   │ image_url   │   │   ├─────────────┤
+┌─────────────┐   │   │ date_debut  │   │   │ user_id(FK) │──►users
+│rapport_vendor│  │   │ date_exp    │   │   │ badge       │
+├─────────────┤   │   │ user_id(FK) │───┘   └─────────────┘
+│ id (PK)     │   │   │ vues        │
+│ vendor_id   │───┘   │ coup_coeur  │       ┌──────────────────┐
+│ date_gen    │       │ created_at  │       │offre_suppression │
+│ periode     │       └─────────────┘       │      _log        │
+│ total_offres│                             ├──────────────────┤
+│ total_vues  │                             │ id (PK)          │
+│ total_fav   │                             │ user_id (FK)     │──►users
+│ offres_crees│                             │ titre_supprime   │
+│ offres_supp │                             │ date_suppression │
+│ offres_exp  │                             └──────────────────┘
 └─────────────┘
 ```
 
