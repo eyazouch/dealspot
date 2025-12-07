@@ -61,8 +61,8 @@ public class StatistiquesService {
             .count();
         stats.put("offresCoupDeCoeur", offresCoupDeCoeur);
         
-        // Badges
-        stats.put("badges", vendeur.getBadges());
+        // Badge
+        stats.put("badge", vendeur.getBadge());
         
         return stats;
     }

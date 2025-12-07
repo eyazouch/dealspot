@@ -7,7 +7,6 @@ import com.dealspot.backend.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
 import java.util.List;
 
 @Service
@@ -22,13 +21,13 @@ public class BadgeService {
     @Autowired
     private FavoriRepository favoriRepository;
     
-    // Mettre à jour les badges d'un vendeur
+    // Mettre à jour le badge d'un vendeur
     public void updateBadges(User user) {
         if (user.getRole() != User.Role.VENDEUR) {
             return;
         }
         
-        List<String> badges = new ArrayList<>();
+        String badge = null;
         
         // Compter les offres du vendeur
         long nombreOffres = offreRepository.findByUser(user).size();
@@ -36,27 +35,18 @@ public class BadgeService {
         // Compter les favoris totaux du vendeur
         long nombreFavoris = favoriRepository.countByVendeur(user);
         
-        // Badge : Vendeur fiable (10+ offres)
-        if (nombreOffres >= 10) {
-            badges.add("Vendeur Fiable ✓");
-        }
-        
-        // Badge : Vendeur populaire (30+ favoris)
-        if (nombreFavoris >= 30) {
-            badges.add("Vendeur Populaire ⭐");
-        }
-        
-        // Badge : Top vendeur (100+ favoris)
+        // Déterminer le meilleur badge (ordre de priorité du plus élevé au plus bas)
         if (nombreFavoris >= 100) {
-            badges.add("Top Vendeur 🏆");
+            badge = "Top Vendeur 🏆";
+        } else if (nombreOffres >= 50) {
+            badge = "Vendeur Expert 💎";
+        } else if (nombreFavoris >= 30) {
+            badge = "Vendeur Populaire ⭐";
+        } else if (nombreOffres >= 10) {
+            badge = "Vendeur Fiable ✓";
         }
         
-        // Badge : Vendeur expert (50+ offres)
-        if (nombreOffres >= 50) {
-            badges.add("Vendeur Expert 💎");
-        }
-        
-        user.setBadges(badges);
+        user.setBadge(badge);
         userRepository.save(user);
     }
     

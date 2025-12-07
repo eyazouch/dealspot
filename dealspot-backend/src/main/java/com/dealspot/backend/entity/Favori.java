@@ -3,7 +3,7 @@ package com.dealspot.backend.entity;
 import jakarta.persistence.*;
 
 @Entity
-@Table(name = "favori")
+@Table(name = "favoris")
 public class Favori {
 
     @Id

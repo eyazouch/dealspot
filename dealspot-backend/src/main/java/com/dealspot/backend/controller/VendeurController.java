@@ -94,7 +94,7 @@ public class VendeurController {
             
             return ResponseEntity.ok(Map.of(
                 "message", "Badges mis à jour",
-                "badges", updatedVendeur.getBadges(),
+                "badges", updatedVendeur.getBadge(),
                 "user", updatedVendeur
             ));
             

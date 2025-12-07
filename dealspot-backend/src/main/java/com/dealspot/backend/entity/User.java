@@ -3,7 +3,6 @@ package com.dealspot.backend.entity;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
 import java.util.List;
 
 @Entity
@@ -28,11 +27,9 @@ public class User {
     
     private LocalDateTime createdAt;
     
-    // Badges du vendeur
-    @ElementCollection
-    @CollectionTable(name = "user_badges", joinColumns = @JoinColumn(name = "user_id"))
+    // Badge du vendeur
     @Column(name = "badge")
-    private List<String> badges = new ArrayList<>();
+    private String badge;
     
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
     @JsonIgnore
@@ -100,12 +97,12 @@ public class User {
         this.createdAt = createdAt;
     }
     
-    public List<String> getBadges() {
-        return badges;
+    public String getBadge() {
+        return badge;
     }
     
-    public void setBadges(List<String> badges) {
-        this.badges = badges;
+    public void setBadge(String badge) {
+        this.badge = badge;
     }
     
     public List<Offre> getOffres() {
@@ -122,24 +119,6 @@ public class User {
     
     public void setFavoris(List<Favori> favoris) {
         this.favoris = favoris;
-    }
-    
-    // MÉTHODES HELPERS POUR LA COMPATIBILITÉ
-    
-    public String getBadge() {
-        if (badges == null || badges.isEmpty()) {
-            return null;
-        }
-        return badges.get(0);
-    }
-    
-    public void setBadge(String badge) {
-        if (this.badges == null) {
-            this.badges = new ArrayList<>();
-        }
-        if (!this.badges.contains(badge)) {
-            this.badges.add(badge);
-        }
     }
     
     public String getRoleString() {
